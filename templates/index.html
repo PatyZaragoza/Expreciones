@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Detección de Rostros</title>
+</head>
+<body>
+    <h1>Subir Imagen para Detección de Rostros</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" id="imageInput" name="image" accept="image/*">
+        <br><br>
+        <button type="button" onclick="processImage()">Procesar Imagen</button>
+        <button type="button" onclick="viewImage()">Ver Imagen</button>
+        <button type="button" onclick="uploadToDrive()">Subir a Google Drive</button>
+    </form>
+    <br>
+    <h3 id="resultText"></h3>
+    <img id="resultImage" alt="Imagen con detección de rostros">
+    
+    <script>
+        let processedImage = null; // Variable para almacenar la imagen procesada
+        let fileId = null; // Variable para almacenar el ID del archivo subido a Google Drive
+
+        async function processImage() {
+            const formData = new FormData(document.getElementById('uploadForm'));
+            try {
+                const response = await fetch('/process', {  // Cambiar '/upload' a '/process'
+                    method: 'POST',
+                    body: formData
+                });
+                const data = await response.json();
+                if (data.error) {
+                    document.getElementById('resultText').textContent = data.error;
+                    processedImage = null;
+                } else {
+                    document.getElementById('resultText').textContent = data.matrix;
+                    processedImage = data.image; // Guardar la imagen procesada
+                    fileId = data.file_id; // Guardar el ID del archivo subido
+                }
+            } catch (error) {
+                document.getElementById('resultText').textContent = 'Error al procesar la imagen.';
+                processedImage = null;
+            }
+        }
+
+        function viewImage() {
+            if (processedImage) {
+                document.getElementById('resultImage').src = processedImage;
+            } else {
+                document.getElementById('resultText').textContent = 'Primero debes procesar una imagen.';
+            }
+        }
+
+        async function uploadToDrive() {
+            if (!fileId) {
+                document.getElementById('resultText').textContent = 'Imagen subida.';
+                return;
+            }
+
+            try {
+                // Aquí podrías agregar lógica adicional si deseas actualizar la imagen en Google Drive
+                document.getElementById('resultText').textContent = 'Imagen ya está subida a Google Drive con ID: ' + fileId;
+            } catch (error) {
+                document.getElementById('resultText').textContent = 'Error al subir la imagen a Google Drive.';
+            }
+        }
+    </script>
+</body>
+</html>
